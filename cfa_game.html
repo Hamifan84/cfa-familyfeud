@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chick-fil-A Family Feud (Enhanced)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Condensed:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+/* 1. THE SETUP */
+* { box-sizing: border-box; }
+
+body {
+  background-color: #1a1a1a;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+  margin: 0;
+  min-height: 100vh;
+  padding: 20px 0;
+  place-items: center;
+  font-family: 'Roboto', sans-serif;
+  user-select: none; /* Prevent text selection for game feel */
+  overflow-x: hidden;
+}
+
+/* SLIDE CONTAINER - Only show active slide */
+.slide-container {
+  align-items: center;
+  background: radial-gradient(circle at center, #0055a5 0%, #001f3f 100%); /* Feud Blue Theme */
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  height: 720px;
+  justify-content: center;
+  overflow: hidden;
+  padding: 40px;
+  position: relative;
+  width: 1280px;
+  border: 4px solid #FFD700; /* Gold Border */
+}
+
+/* Show only the active slide */
+.slide-container.active {
+  display: flex;
+}
+
+/* 2. TYPOGRAPHY & THEME */
+h1, h2, h3 {
+  font-family: 'Bangers', cursive;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0;
+  text-shadow: 3px 3px 0px #000;
+}
+
+.slide-container h1 {
+  font-size: 100px;
+  color: #FFD700;
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.slide-container h2 {
+    font-size: 48px;
+    color: #fff;
+    margin-bottom: 30px;
+    text-align: center;
+    max-width: 900px;
+}
+
+.slide-container p, li {
+  color: #fff;
+  font-size: 24px;
+  line-height: 1.4;
+}
+
+/* 3. INTERACTIVE BOARD STYLES */
+.board-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 900px;
+    padding: 20px;
+    background-color: #003366;
+    border: 10px solid #FFD700;
+    border-radius: 15px;
+    box-shadow: inset 0 0 50px #000;
+}
+
+.answer-wrapper {
+    position: relative;
+    width: 100%;
+    height: 70px;
+    background: linear-gradient(to bottom, #004080, #002040);
+    border: 2px solid #55aaff;
+    border-radius: 5px;
+}
+
+/* Crucial for Interactivity */
+.toggle-input {
+    display: none;
+}
+
+.cover-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0055a5;
+    border: 3px solid #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-family: 'Bangers', cursive;
+    font-size: 40px;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 4px 0 #002244;
+}
+
+.cover-card:hover {
+    background-color: #0066cc;
+}
+
+.actual-answer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 0 20px;
+    color: #fff;
+    font-family: 'Bangers', cursive;
+    font-size: 28px;
+}
+
+.score-box {
+    background: #000;
+    border: 2px solid #fff;
+    padding: 5px 15px;
+    color: #dd0031;
+    font-weight: bold;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* THE MAGIC: When checkbox is checked, hide the cover */
+.toggle-input:checked + .cover-card {
+    display: none;
+}
+
+/* 4. HOST CONTROLS (THE SOUNDBOARD) */
+.host-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.8);
+    border: 2px solid #FFD700;
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
+    gap: 15px;
+    z-index: 100;
+    align-items: center;
+}
+
+.control-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: #fff;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+    transition: transform 0.1s;
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.btn-correct {
+    background: radial-gradient(circle at 30% 30%, #4ade80, #16a34a);
+    text-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+
+.btn-wrong {
+    background: radial-gradient(circle at 30% 30%, #ef4444, #991b1b);
+    text-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+
+.control-label {
+    color: #fff;
+    font-family: 'Roboto Condensed';
+    font-size: 16px;
+    text-align: center;
+    margin-top: 5px;
+    text-transform: uppercase;
+}
+
+.btn-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* STRIKE OVERLAY (Visual feedback) */
+.strike-overlay-ref {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none; /* Hide by default */
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 99;
+}
+
+.big-red-x {
+    color: #dd0031;
+    font-size: 400px;
+    font-family: 'Bangers', cursive;
+    text-shadow: 10px 10px 0 #fff;
+    transform: scale(0.5);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.show-strike {
+    opacity: 1 !important;
+}
+
+.show-strike .big-red-x {
+    transform: scale(1);
+}
+
+/* 5. OTHER LAYOUTS */
+.title-layout { display: flex; align-items: center; justify-content: center; gap: 50px; }
+.host-img { 
+    height: 400px; 
+    border-radius: 10px;
+    border: 5px solid #FFD700;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
+    background: #fff;
+    padding: 10px;
+}
+.badge { 
+    background: #dd0031; 
+    color: white; 
+    padding: 10px 20px; 
+    font-family: 'Bangers', cursive; 
+    font-size: 24px; 
+    border-radius: 50px; 
+    position: absolute; 
+    top: 30px; 
+    left: 30px; 
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3); 
+    z-index: 10;
+}
+
+/* SCOREBOARD */
+.scoreboard {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: rgba(0,0,0,0.8);
+    border: 3px solid #FFD700;
+    border-radius: 15px;
+    padding: 15px 25px;
+    color: white;
+    font-family: 'Bangers', cursive;
+    text-align: center;
+    z-index: 10;
+}
+
+.team-score {
+    font-size: 36px;
+    color: #FFD700;
+    margin: 5px 0;
+}
+
+.team-name {
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.scoreboard-title {
+    font-size: 24px;
+    color: #dd0031;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #FFD700;
+    padding-bottom: 5px;
+}
+
+/* NAVIGATION CONTROLS */
+.nav-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    gap: 15px;
+    z-index: 100;
+}
+
+.nav-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    border: 3px solid #fff;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.nav-btn:hover {
+    background: #0055a5;
+    transform: scale(1.05);
+}
+
+.nav-label {
+    color: #fff;
+    font-family: 'Roboto Condensed';
+    font-size: 14px;
+    text-align: center;
+    margin-top: 5px;
+}
+
+/* Full screen background for end slide */
+.full-bg-image {
+    background-size: cover !important;
+    background-position: center !important;
+}
+
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title_Slide -->
+<div class="slide-container active" id="slide1">
+    <div class="badge">Holiday Party Edition</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score">0</div>
+    </div>
+    <div class="title-layout">
+        <img src="https://cdn.pixabay.com/photo/2016/03/31/19/57/avatar-1295406_1280.png" class="host-img" alt="Host">
+        <div style="text-align: center;">
+            <h1 style="font-size: 140px;">FAMILY<br>FEUD</h1>
+            <div style="background: #dd0031; color: white; padding: 10px 30px; font-family: 'Roboto Condensed'; font-size: 40px; transform: rotate(2deg); box-shadow: 5px 5px 0 rgba(0,0,0,0.5);">CHICK-FIL-A STYLE</div>
+            <p style="margin-top: 30px; font-size: 28px; color: #FFD700;">Tap the numbers to reveal answers!</p>
+        </div>
+    </div>
+    <!-- Navigation Controls -->
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    <!-- Host Controls -->
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+     <!-- Strike Overlay -->
+    <div id="strike-overlay-1" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 2: Rules -->
+<div class="slide-container" id="slide2">
+    <div class="badge">Rules</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-2">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-2">0</div>
+    </div>
+    <h2 class="slide-title">How to Play</h2>
+    <div class="content-area" style="width: 100%; display: flex; gap: 40px; justify-content: center;">
+        <div style="background: rgba(0,0,0,0.3); padding: 40px; border-radius: 15px; width: 45%; border: 2px solid #FFD700;">
+            <h3><i class="fa-solid fa-users" style="color: #FFD700; margin-right: 10px;"></i> TEAMS</h3>
+            <p>Divide into 2 teams of 6-7 people.<br>Example: "The Spicy Deluxes" vs "The Waffle Fries".</p>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); padding: 40px; border-radius: 15px; width: 45%; border: 2px solid #FFD700;">
+            <h3><i class="fa-solid fa-hand-pointer" style="color: #FFD700; margin-right: 10px;"></i> FACE-OFF</h3>
+            <p>One player from each team buzzes in. Top answer takes control. 3 strikes and the other team can STEAL!</p>
+        </div>
+    </div>
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+     <div id="strike-overlay-2" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 3: Round 1 Board -->
+<div class="slide-container" id="slide3">
+    <div class="badge">Round 1</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-3">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-3">0</div>
+    </div>
+    <h2>"Name something customers always ask for at Chick-fil-A."</h2>
+    
+    <div class="board-grid">
+        <!-- Left Column -->
+        <div class="answer-wrapper">
+            <input type="checkbox" id="r1-1" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r1-1')">
+            <label for="r1-1" class="cover-card">1</label>
+            <div class="actual-answer">Sauce / Chick-fil-A Sauce <span class="score-box">36</span></div>
+        </div>
+        <div class="answer-wrapper">
+            <input type="checkbox" id="r1-2" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r1-2')">
+            <label for="r1-2" class="cover-card">2</label>
+            <div class="actual-answer">Extra Napkins<span class="score-box">18</span></div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="answer-wrapper">
+            <input type="checkbox" id="r1-3" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r1-3')">
+            <label for="r1-3" class="cover-card">3</label>
+            <div class="actual-answer">Ice/ Cup of Ice <span class="score-box">10</span></div>
+        </div>
+        <div class="answer-wrapper">
+            <input type="checkbox" id="r1-4" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r1-4')">
+            <label for="r1-4" class="cover-card">4</label>
+            <div class="actual-answer">Straws<span class="score-box">12</span></div>
+        </div>
+        <div class="answer-wrapper">
+            <input type="checkbox" id="r1-5" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r1-5')">
+            <label for="r1-5" class="cover-card">5</label>
+            <div class="actual-answer">A Refill<span class="score-box">7</span></div>
+        </div>
+        <div class="answer-wrapper">
+            <input type="checkbox" id="r1-6" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r1-6')">
+            <label for="r1-6" class="cover-card">6</label>
+            <div class="actual-answer">Fresh Food/Fries<span class="score-box">5</span></div>
+        </div>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+    <div id="strike-overlay-3" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 4: Round 2 Board -->
+<div class="slide-container" id="slide4">
+    <div class="badge">Round 2</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-4">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-4">0</div>
+    </div>
+    <h2>"Name a sauce you're likely to hoard in your glovebox"</h2>
+    
+    <div class="board-grid">
+        <div class="answer-wrapper"><input type="checkbox" id="r2-1" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r2-1')"><label for="r2-1" class="cover-card">1</label><div class="actual-answer">CHICK-FIL-A SAUCE <span class="score-box">55</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r2-2" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r2-2')"><label for="r2-2" class="cover-card">2</label><div class="actual-answer">POLYNESIAN <span class="score-box">20</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r2-3" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r2-3')"><label for="r2-3" class="cover-card">3</label><div class="actual-answer">RANCH (GARDEN) <span class="score-box">10</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r2-4" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r2-4')"><label for="r2-4" class="cover-card">4</label><div class="actual-answer">BARBEQUE <span class="score-box">8</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r2-5" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r2-5')"><label for="r2-5" class="cover-card">5</label><div class="actual-answer">HONEY ROASTED <span class="score-box">6</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r2-6" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r2-6')"><label for="r2-6" class="cover-card">6</label><div class="actual-answer">BUFFALO <span class="score-box">5</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r2-7" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r2-7')"><label for="r2-7" class="cover-card">7</label><div class="actual-answer">SRIRACHA <span class="score-box">3</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r2-8" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r2-8')"><label for="r2-8" class="cover-card">8</label><div class="actual-answer">KETCHUP <span class="score-box">1</span></div></div>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+    <div id="strike-overlay-4" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 5: Round 3 Board -->
+<div class="slide-container" id="slide5">
+    <div class="badge">Round 3</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-5">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-5">0</div>
+    </div>
+    <h2>"Name a reason a customer might get 'Spicy' (Upset)."</h2>
+    
+    <div class="board-grid">
+        <div class="answer-wrapper"><input type="checkbox" id="r3-1" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r3-1')"><label for="r3-1" class="cover-card">1</label><div class="actual-answer">FORGOT SAUCE <span class="score-box">40</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r3-2" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r3-2')"><label for="r3-2" class="cover-card">2</label><div class="actual-answer">WRONG ORDER <span class="score-box">25</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r3-3" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r3-3')"><label for="r3-3" class="cover-card">3</label><div class="actual-answer">COLD FRIES <span class="score-box">12</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r3-4" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r3-4')"><label for="r3-4" class="cover-card">4</label><div class="actual-answer">PRICE WENT UP <span class="score-box">10</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r3-5" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r3-5')"><label for="r3-5" class="cover-card">5</label><div class="actual-answer">LONG LINE/ LONG WAIT <span class="score-box">5</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r3-6" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r3-6')"><label for="r3-6" class="cover-card">6</label><div class="actual-answer">APP PROBLEMS <span class="score-box">4</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r3-7" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r3-7')"><label for="r3-7" class="cover-card">7</label><div class="actual-answer">OUT OF SEASONAL ITEM <span class="score-box">3</span></div></div>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+    <div id="strike-overlay-5" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 6: Round 4 Board -->
+<div class="slide-container" id="slide6">
+    <div class="badge">Round 4</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-6">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-6">0</div>
+    </div>
+    <h2>"Name a Chick-fil-A menu item a customer is likely to get"</h2>
+    
+    <div class="board-grid">
+        <div class="answer-wrapper"><input type="checkbox" id="r4-1" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r4-1')"><label for="r4-1" class="cover-card">1</label><div class="actual-answer">Chick-fil-A Sandwich <span class="score-box">50</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r4-2" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r4-2')"><label for="r4-2" class="cover-card">2</label><div class="actual-answer">Nuggets <span class="score-box">28</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r4-3" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r4-3')"><label for="r4-3" class="cover-card">3</label><div class="actual-answer">Waffle Fries <span class="score-box">20</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r4-4" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r4-4')"><label for="r4-4" class="cover-card">4</label><div class="actual-answer">Mac & Cheese <span class="score-box">12</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r4-5" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r4-5')"><label for="r4-5" class="cover-card">5</label><div class="actual-answer">Lemonade<span class="score-box">10</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r4-6" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r4-6')"><label for="r4-6" class="cover-card">6</label><div class="actual-answer">Milkshake<span class="score-box">5</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r4-7" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r4-7')"><label for="r4-7" class="cover-card">7</label><div class="actual-answer">THE ICE (CRUSHED) <span class="score-box">2</span></div></div>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+    <div id="strike-overlay-6" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 7: Round 5 Board -->
+<div class="slide-container" id="slide7">
+    <div class="badge">Round 5</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-7">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-7">0</div>
+    </div>
+    <h2>"Name something you forget to do before clocking in."</h2>
+    
+    <div class="board-grid">
+        <div class="answer-wrapper"><input type="checkbox" id="r5-1" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r5-1')"><label for="r5-1" class="cover-card">1</label><div class="actual-answer">Put on hairnet<span class="score-box">30</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r5-2" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r5-2')"><label for="r5-2" class="cover-card">2</label><div class="actual-answer">Wash Hands<span class="score-box">22</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r5-3" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r5-3')"><label for="r5-3" class="cover-card">3</label><div class="actual-answer">Put on Name Tag<span class="score-box">15</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r5-4" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r5-4')"><label for="r5-4" class="cover-card">4</label><div class="actual-answer">Check Position<span class="score-box">12</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r5-5" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r5-5')"><label for="r5-5" class="cover-card">5</label><div class="actual-answer">Clock in on time<span class="score-box">10</span></div></div>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+    <div id="strike-overlay-7" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 8: Round 6 Board -->
+<div class="slide-container" id="slide8">
+    <div class="badge">Round 6</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-8">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-8">0</div>
+    </div>
+    <h2>"Name something you hear all day at Chick-fil-A."</h2>
+    
+    <div class="board-grid">
+        <div class="answer-wrapper"><input type="checkbox" id="r6-1" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r6-1')"><label for="r6-1" class="cover-card">1</label><div class="actual-answer">My Pleasure!<span class="score-box">40</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r6-2" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r6-2')"><label for="r6-2" class="cover-card">2</label><div class="actual-answer">Can I get Chick-fil-A Sauce?<span class="score-box">20</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r6-3" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r6-3')"><label for="r6-3" class="cover-card">3</label><div class="actual-answer">Mobile order for ___! <span class="score-box">13</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r6-4" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r6-4')"><label for="r6-4" class="cover-card">4</label><div class="actual-answer">Fryers / kitchen sounds<span class="score-box">10</span></div></div>
+        <div class="answer-wrapper"><input type="checkbox" id="r6-5" class="toggle-input" onchange="if(this.checked) addPointsFromAnswer('r6-5')"><label for="r6-5" class="cover-card">5</label><div class="actual-answer">Bryan Screaming<span class="score-box">8</span></div></div>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+    <div id="strike-overlay-8" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 9: Fast Money -->
+<div class="slide-container" id="slide9">
+    <div class="badge">Grand Finale</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-9">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-9">0</div>
+    </div>
+    <h1>FAST MONEY</h1>
+    <div style="background: rgba(0,0,0,0.4); padding: 40px; border-radius: 15px; border: 2px solid #FFD700; width: 800px; text-align: center;">
+        <p style="font-size: 32px; color: #FFD700; margin-bottom: 20px;">Pick 2 players from the winning team!</p>
+        <ul style="list-style: none; text-align: left; display: inline-block;">
+             <li style="margin-bottom: 15px;">1. A word describing the lunch rush.</li>
+             <li style="margin-bottom: 15px;">2. A menu item that's hard to make.</li>
+             <li style="margin-bottom: 15px;">3. Best milkshake flavor.</li>
+             <li style="margin-bottom: 15px;">4. Something you clean often.</li>
+             <li style="margin-bottom: 15px;">5. Number of nuggets in a "perfect" meal.</li>
+        </ul>
+        <div style="margin-top: 20px; font-style: italic; color: #ccc;">Goal: 200 Points Total</div>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Next</div>
+        </div>
+    </div>
+    
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+    <div id="strike-overlay-9" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- Slide 10: End -->
+<div class="slide-container full-bg-image" id="slide10" style="background-image: linear-gradient(rgba(0, 51, 102, 0.9), rgba(0, 31, 63, 0.9)), url('https://cdn.pixabay.com/photo/2016/11/22/19/15/audience-1850119_1280.jpg');">
+    <div class="badge">Game Over</div>
+    <div class="scoreboard">
+        <div class="scoreboard-title">FINAL SCORE</div>
+        <div class="team-name">TEAM 1</div>
+        <div class="team-score" id="team1-score-final">0</div>
+        <div class="team-name">TEAM 2</div>
+        <div class="team-score" id="team2-score-final">0</div>
+    </div>
+    <div class="title-layout">
+        <div style="text-align: center;">
+            <h1 style="font-size: 100px;">THANKS FOR PLAYING!</h1>
+            <h2 style="color: #FFD700; font-size: 60px;">ENJOY THE PARTY!</h2>
+            <div style="margin-top: 40px; font-size: 32px; color: #fff; font-family: 'Bangers';">
+                <div id="winner-message">Calculating winner...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="btn-group">
+            <button class="nav-btn" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="nav-label">Prev</div>
+        </div>
+        <div class="btn-group">
+            <button class="nav-btn" onclick="nextSlide()"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="nav-label">Restart</div>
+        </div>
+    </div>
+    
+    <div class="host-controls">
+        <div class="btn-group">
+            <button class="control-btn btn-correct" onclick="playCorrect()"><i class="fa-solid fa-check"></i></button>
+            <div class="control-label">Ding</div>
+        </div>
+        <div class="btn-group">
+            <button class="control-btn btn-wrong" onclick="playWrong()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="control-label">Buzz & Strike</div>
+        </div>
+    </div>
+    <div id="strike-overlay-10" class="strike-overlay-ref">
+        <div class="big-red-x">X</div>
+    </div>
+</div>
+
+<!-- AUDIO SCRIPT -->
+<script>
+    // ========== GAME STATE ==========
+    let currentSlide = 1;
+    const totalSlides = 10;
+    let team1Score = 0;
+    let team2Score = 0;
+    let activeTeam = 1; // 1 or 2
+    let strikes = 0;
+    const maxStrikes = 3;
+
+    // ========== SLIDE NAVIGATION ==========
+    function showSlide(slideNumber) {
+        // Hide all slides
+        document.querySelectorAll('.slide-container').forEach(slide => {
+            slide.classList.remove('active');
+        });
+        
+        // Show the requested slide
+        const slide = document.getElementById(`slide${slideNumber}`);
+        if (slide) {
+            slide.classList.add('active');
+            currentSlide = slideNumber;
+        }
+        
+        // Update all score displays
+        updateAllScoreDisplays();
+        
+        // Update winner message on final slide
+        if (slideNumber === 10) {
+            updateWinnerMessage();
+        }
+    }
+
+    function nextSlide() {
+        if (currentSlide < totalSlides) {
+            showSlide(currentSlide + 1);
+        } else {
+            // Loop back to beginning
+            showSlide(1);
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 1) {
+            showSlide(currentSlide - 1);
+        } else {
+            // Loop to end
+            showSlide(totalSlides);
+        }
+    }
+
+    // ========== SCORE MANAGEMENT ==========
+    function addPoints(points, team) {
+        if (team === 1) {
+            team1Score += points;
+        } else {
+            team2Score += points;
+        }
+        updateAllScoreDisplays();
+        playCorrect(); // Play ding sound when points are added
+    }
+
+    function addPointsFromAnswer(answerId) {
+        const answerElement = document.getElementById(answerId);
+        if (!answerElement) return;
+        
+        // Find the score in the answer box
+        const answerWrapper = answerElement.closest('.answer-wrapper');
+        if (answerWrapper) {
+            const scoreBox = answerWrapper.querySelector('.score-box');
+            if (scoreBox) {
+                const points = parseInt(scoreBox.textContent);
+                if (!isNaN(points)) {
+                    addPoints(points, activeTeam);
+                }
+            }
+        }
+    }
+
+    function updateAllScoreDisplays() {
+        // Update main scores
+        document.querySelectorAll('.team-score').forEach(scoreElement => {
+            const id = scoreElement.id;
+            if (id.includes('team1')) {
+                scoreElement.textContent = team1Score;
+            } else if (id.includes('team2')) {
+                scoreElement.textContent = team2Score;
+            }
+        });
+    }
+
+    function updateWinnerMessage() {
+        const messageElement = document.getElementById('winner-message');
+        if (!messageElement) return;
+        
+        if (team1Score > team2Score) {
+            messageElement.innerHTML = '<span style="color: #FFD700;">TEAM 1 WINS!</span><br>Congratulations!';
+        } else if (team2Score > team1Score) {
+            messageElement.innerHTML = '<span style="color: #FFD700;">TEAM 2 WINS!</span><br>Congratulations!';
+        } else {
+            messageElement.innerHTML = '<span style="color: #FFD700;">IT\'S A TIE!</span><br>Great game everyone!';
+        }
+    }
+
+    function switchTeam() {
+        activeTeam = activeTeam === 1 ? 2 : 1;
+        strikes = 0; // Reset strikes when team switches
+        // Could add visual indication of which team is active
+    }
+
+    // ========== AUDIO SYSTEM ==========
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    // Pre-load sound effects using the Web Audio API
+    function playTone(freq, duration, type = 'sine', startTime = 0) {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.type = type;
+        oscillator.frequency.value = freq;
+        
+        // Set gain envelope
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime + startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + startTime + duration);
+        
+        oscillator.start(audioCtx.currentTime + startTime);
+        oscillator.stop(audioCtx.currentTime + startTime + duration);
+    }
+
+    function playCorrect() {
+        // Play a pleasant "ding" sound
+        playTone(880, 0.3, 'sine', 0);      // A5
+        playTone(1318.51, 0.6, 'sine', 0.1); // E6
+    }
+
+    function playWrong() {
+        // Play buzzer sound and show strike
+        const duration = 0.8;
+        
+        // Create two oscillators for a harsh buzzer sound
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        const gain2 = audioCtx.createGain();
+        
+        osc1.type = 'square';
+        osc2.type = 'square';
+        osc1.frequency.value = 100;
+        osc2.frequency.value = 105; // Slightly detuned for dissonance
+        
+        osc1.connect(gain1);
+        osc2.connect(gain2);
+        gain1.connect(audioCtx.destination);
+        gain2.connect(audioCtx.destination);
+        
+        // Set volume
+        gain1.gain.value = 0.2;
+        gain2.gain.value = 0.2;
+        
+        // Start and stop
+        osc1.start();
+        osc2.start();
+        osc1.stop(audioCtx.currentTime + duration);
+        osc2.stop(audioCtx.currentTime + duration);
+        
+        // Add a strike
+        addStrike();
+    }
+
+    // ========== STRIKE SYSTEM ==========
+    function addStrike() {
+        strikes++;
+        
+        // Show strike visual on current slide
+        const overlay = document.getElementById(`strike-overlay-${currentSlide}`);
+        if (overlay) {
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('show-strike'), 10);
+            
+            setTimeout(() => {
+                overlay.classList.remove('show-strike');
+                setTimeout(() => overlay.style.display = 'none', 200);
+            }, 800);
+        }
+        
+        // Check if team has 3 strikes
+        if (strikes >= maxStrikes) {
+            setTimeout(() => {
+                alert(`Team ${activeTeam} has 3 strikes! Other team can now steal!`);
+                switchTeam();
+            }, 1000);
+        }
+    }
+
+    // ========== TEAM SELECTION ==========
+    function selectTeam(team) {
+        activeTeam = team;
+        strikes = 0;
+        alert(`Team ${team} is now playing!`);
+    }
+
+    // ========== KEYBOARD SHORTCUTS ==========
+    document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+            case 'ArrowRight':
+                e.preventDefault();
+                nextSlide();
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                prevSlide();
+                break;
+            case '1':
+                selectTeam(1);
+                break;
+            case '2':
+                selectTeam(2);
+                break;
+            case ' ':
+                e.preventDefault();
+                playCorrect();
+                break;
+            case 'x':
+            case 'X':
+                e.preventDefault();
+                playWrong();
+                break;
+        }
+    });
+
+    // ========== INITIALIZATION ==========
+    // Initialize by showing first slide
+    showSlide(1);
+    
+    // Add team selection buttons
+    document.addEventListener('DOMContentLoaded', () => {
+        // Add team selection to host controls
+        const hostControls = document.querySelector('.host-controls');
+        if (hostControls) {
+            const teamSelect = document.createElement('div');
+            teamSelect.className = 'btn-group';
+            teamSelect.innerHTML = `
+                <button class="control-btn" onclick="selectTeam(1)" style="background: #0055a5;">
+                    <i class="fa-solid fa-1"></i>
+                </button>
+                <div class="control-label">Team 1</div>
+            `;
+            hostControls.appendChild(teamSelect);
+            
+            const teamSelect2 = document.createElement('div');
+            teamSelect2.className = 'btn-group';
+            teamSelect2.innerHTML = `
+                <button class="control-btn" onclick="selectTeam(2)" style="background: #dd0031;">
+                    <i class="fa-solid fa-2"></i>
+                </button>
+                <div class="control-label">Team 2</div>
+            `;
+            hostControls.appendChild(teamSelect2);
+        }
+        
+        // Add instructions
+        const instructions = document.createElement('div');
+        instructions.style.cssText = `
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ccc;
+            font-family: 'Roboto';
+            font-size: 14px;
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        `;
+        instructions.innerHTML = 'Keyboard: ← → = Navigate | Space = Ding | X = Buzz | 1/2 = Select Team';
+        document.body.appendChild(instructions);
+    });
+
+</script>
+</body>
+</html>
